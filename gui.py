@@ -19,10 +19,10 @@ class TravelAppGUI:
         subheader = tk.Label(self.root, text="To fetch the weather forecast for your upcoming trip, click on 'Add Trip' below and enter your trip details.", font=("Arial", 12), wraplength=400, justify="center")
         subheader.pack(pady=10)
 
-        # Add Trip Button
+        # Add Trip Button for user to add their city
         tk.Button(self.root, text="Add Trip", command=self.add_trip).pack(pady=5)
 
-        # Create and initialize a label to display weather results or errors
+        # Creates and initialize a label to display weather results or errors
         self.weather_result_label = tk.Label(self.root, text="", font=("Arial", 12), wraplength=300)
         self.weather_result_label.pack(pady=10)
 
@@ -58,16 +58,16 @@ class TravelAppGUI:
 
             # Weather fetching logic
             weather_api = WeatherAPI()
-            weather = weather_api.get_weather(city)
+            weather = weather_api.get_weather(city, state)
 
             if weather and "weather" in weather:
-                trip = Trip(city, start_date, end_date)
+                trip = Trip(city, state, start_date, end_date)
                 trip.set_weather(weather)
 
                 description = weather['weather'][0]['description']
                 temperature = weather['main']['temp'] - 273.15
                 self.weather_result_label.config(
-                    text=f"Weather in {city}: {description.capitalize()}, {temperature:.1f}°C",
+                    text=f"Weather in {city}, {state}: {description.capitalize()}, {temperature:.1f}°C",
                     fg="green",
                 )
             else:
@@ -78,6 +78,10 @@ class TravelAppGUI:
         trip_frame.pack(pady=10)
 
         tk.Label(trip_frame, text="City:").grid(row=0, column=0, padx=5, pady=5)
+        city_entry = tk.Entry(trip_frame)
+        city_entry.grid(row=0, column=1, padx=5, pady=5)
+        
+        tk.Label(trip_frame, text="State:").grid(row=0, column=0, padx=5, pady=5)
         city_entry = tk.Entry(trip_frame)
         city_entry.grid(row=0, column=1, padx=5, pady=5)
 
