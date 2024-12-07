@@ -1,104 +1,142 @@
 import tkinter as tk
-from datetime import datetime, timedelta
-from travel import Trip
-from weather import WeatherAPI
+from datetime import datetime
+from weather import WeatherAPI  # Assuming the WeatherAPI class is defined elsewhere
+import json
+from validation import Validation  # Assuming a Validation class is available
 
 class TravelAppGUI:
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initializes the main window for the application."""
         self.root = tk.Tk()
         self.root.title("Weather Wizard")
+        self.root.geometry("600x400")  # Set the initial window size
+        self.root.resizable(False, False)  # Disable resizing of the window
 
-        # Initialize weather result label early
+        # Initialize the weather result label as None (to be updated later)
         self.weather_result_label = None
 
-        # Main layout
+        # Set up the home screen layout
         self.setup_home()
 
-    def setup_home(self):
+    def setup_home(self) -> None:
+        """Sets up the initial home screen with welcome text and an 'Add Trip' button."""
+        # Welcome label
         tk.Label(self.root, text="Welcome to Weather Wizard!", font=("Arial", 16)).pack(pady=10)
-        subheader = tk.Label(self.root, text="To fetch the weather forecast for your upcoming trip, click on 'Add Trip' below and enter your trip details.", font=("Arial", 12), wraplength=400, justify="center")
+        
+        # Instructional subheader
+        subheader = tk.Label(
+            self.root, 
+            text="To fetch the weather forecast for your upcoming trip, click on 'Add Trip' below and enter your trip details.",
+            font=("Arial", 12),
+            wraplength=400,
+            justify="center"
+        )
         subheader.pack(pady=10)
 
-        # Add Trip Button for user to add their city
+        # 'Add Trip' button that triggers adding trip details
         tk.Button(self.root, text="Add Trip", command=self.add_trip).pack(pady=5)
 
-        # Creates and initialize a label to display weather results or errors
+        # Label to display weather data or errors
         self.weather_result_label = tk.Label(self.root, text="", font=("Arial", 12), wraplength=300)
         self.weather_result_label.pack(pady=10)
 
-    def add_trip(self):
-        def submit_trip():
-            city = city_entry.get()
-            start_date = start_date_entry.get()
-            end_date = end_date_entry.get()
+    def add_trip(self) -> None:
+        """Creates a new frame for users to input city and state for their trip."""
+        # Create and pack a new frame for input fields
+        trip_frame = tk.Frame(self.root, pady=20)
+        trip_frame.pack(fill="both", expand=True)  # Make the frame expand to fill space
+        trip_frame.pack_propagate(False)  # Prevent resizing of the frame
 
-            if not city or not start_date or not end_date:
-                self.display_error("All fields are required!")
-                return
+        # Configure grid columns to be expandable
+        trip_frame.grid_columnconfigure(0, weight=1)
+        trip_frame.grid_columnconfigure(1, weight=1)
 
-            try:
-                start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
-                end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
-                today = datetime.today()
-                max_forecast_date = today + timedelta(days=16)
+        # City input field
+        city_label = tk.Label(trip_frame, text="City:", font=("Arial", 12))
+        city_label.grid(row=0, column=0, padx=10, pady=5, sticky="e")
+        city_entry = tk.Entry(trip_frame, font=("Arial", 12), width=25)
+        city_entry.grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
-                if start_date_obj < today or end_date_obj < today:
-                    self.display_error("Dates are in the past, please try again")
-                    return
+        # State input field
+        state_label = tk.Label(trip_frame, text="State (e.g., CA):", font=("Arial", 12))
+        state_label.grid(row=1, column=0, padx=10, pady=5, sticky="e")
+        state_entry = tk.Entry(trip_frame, font=("Arial", 12), width=10)
+        state_entry.grid(row=1, column=1, padx=10, pady=5, sticky="w")
 
-                if start_date_obj > max_forecast_date or end_date_obj > max_forecast_date:
-                    self.display_error(
-                        "Sorry, but weather checker can only check the forecast up to 16 days from now. Please try again"
-                    )
-                    return
+        # Submit button to submit trip details
+        submit_button = tk.Button(trip_frame, text="Submit", font=("Arial", 12), command=lambda: self.submit_trip(city_entry, state_entry))
+        submit_button.grid(row=2, columnspan=2, pady=15)  # Center the button
 
-            except ValueError:
-                self.display_error("Invalid date format. Please use YYYY-MM-DD.")
-                return
+        # Force the window to update its layout
+        self.root.update_idletasks()
 
-            # Weather fetching logic
-            weather_api = WeatherAPI()
-            weather = weather_api.get_weather(city, state)
-
-            if weather and "weather" in weather:
-                trip = Trip(city, state, start_date, end_date)
-                trip.set_weather(weather)
-
-                description = weather['weather'][0]['description']
-                temperature = weather['main']['temp'] - 273.15
-                self.weather_result_label.config(
-                    text=f"Weather in {city}, {state}: {description.capitalize()}, {temperature:.1f}°C",
-                    fg="green",
-                )
-            else:
-                self.display_error("Could not fetch weather data. Try again!")
-
-        # Create a new frame within the main window for input
-        trip_frame = tk.Frame(self.root)
-        trip_frame.pack(pady=10)
-
-        tk.Label(trip_frame, text="City:").grid(row=0, column=0, padx=5, pady=5)
-        city_entry = tk.Entry(trip_frame)
-        city_entry.grid(row=0, column=1, padx=5, pady=5)
+    def submit_trip(self, city_entry: tk.Entry, state_entry: tk.Entry) -> None:
+        """
+        Validates the trip details and fetches the weather data for the given city and state.
         
-        tk.Label(trip_frame, text="State:").grid(row=0, column=0, padx=5, pady=5)
-        city_entry = tk.Entry(trip_frame)
-        city_entry.grid(row=0, column=1, padx=5, pady=5)
+        Args:
+            city_entry (tk.Entry): The text entry widget for the city.
+            state_entry (tk.Entry): The text entry widget for the state.
+        """
+        city = city_entry.get()
+        state = state_entry.get().strip().upper()
 
-        tk.Label(trip_frame, text="Start Date (YYYY-MM-DD):").grid(row=1, column=0, padx=5, pady=5)
-        start_date_entry = tk.Entry(trip_frame)
-        start_date_entry.grid(row=1, column=1, padx=5, pady=5)
+        # Validate the city and state input
+        if not city or not state:
+            self.display_error("City and state are required!")
+            return
 
-        tk.Label(trip_frame, text="End Date (YYYY-MM-DD):").grid(row=2, column=0, padx=5, pady=5)
-        end_date_entry = tk.Entry(trip_frame)
-        end_date_entry.grid(row=2, column=1, padx=5, pady=5)
+        if state not in Validation.VALID_STATES:
+            self.display_error("Invalid state format. Use 2-letter uppercase state abbreviations (e.g., FL, CA).")
+            return
 
-        tk.Button(trip_frame, text="Submit", command=submit_trip).grid(row=3, columnspan=2, pady=10)
+        # Fetch weather data using the WeatherAPI class
+        weather_api = WeatherAPI()
+        weather_data = weather_api.get_weather(city, state, 5)
 
-    def display_error(self, message: str):
-        """Displays an error message in red on the weather_result_label."""
-        if self.weather_result_label:  # Ensure label exists
+        # If no valid data is returned, show an error
+        if not weather_data or "list" not in weather_data:
+            self.display_error("Could not fetch weather data. Try again!")
+            return
+
+        # Process and format the weather data
+        forecast_text = f"Weather forecast for {city}, {state}:\n"
+        daily_data = {}  # Dictionary to store aggregated daily data
+
+        for forecast in weather_data["list"]:
+            # Convert the timestamp to a readable date
+            date_time = datetime.fromtimestamp(forecast["dt"])
+            date = date_time.strftime("%Y-%m-%d")
+
+            # Initialize daily data if it's a new day
+            if date not in daily_data:
+                daily_data[date] = {"max": float("-inf"), "min": float("inf")}
+
+            # Get temperature data and convert it from Celsius to Fahrenheit
+            if "main" in forecast:
+                temp_max = forecast["main"].get("temp_max", daily_data[date]["max"])
+                temp_min = forecast["main"].get("temp_min", daily_data[date]["min"])
+
+                temp_max_fahrenheit = (temp_max * 9/5) + 32
+                temp_min_fahrenheit = (temp_min * 9/5) + 32
+
+                daily_data[date]["max"] = max(daily_data[date]["max"], temp_max_fahrenheit)
+                daily_data[date]["min"] = min(daily_data[date]["min"], temp_min_fahrenheit)
+
+        # Format the forecast text for the next 5 days
+        for date, temps in sorted(daily_data.items())[:5]:  # Only show the next 5 days
+            day_of_week = datetime.strptime(date, "%Y-%m-%d").strftime("%A")
+            forecast_text += f"{day_of_week} ({date}): High: {temps['max']:.1f}°F, Low: {temps['min']:.1f}°F\n"
+
+        # Update the label with the weather forecast
+        self.weather_result_label.config(text=forecast_text, fg="cyan")
+        self.weather_result_label.update_idletasks()
+
+    def display_error(self, message: str) -> None:
+        """Displays an error message in red on the weather result label."""
+        if self.weather_result_label:
             self.weather_result_label.config(text=message, fg="red")
 
-    def run(self):
+    def run(self) -> None:
+        """Starts the tkinter main loop to run the application."""
         self.root.mainloop()

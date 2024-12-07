@@ -1,29 +1,46 @@
 import json
-#I decided to use json for this data file because it makes storing things easy within the data functions.
-#I learned how to use json here: https://thenewstack.io/python-for-beginners-how-to-use-json-in-python/
+
+"""I decided to use JSON for this data file because it's an easy and convenient way to store data.
+I learned how to use JSON in Python here: https://thenewstack.io/python-for-beginners-how-to-use-json-in-python/"""
 
 class DataManager:
+    # Constants to define the file paths
     USER_FILE = "data/users.json"
     TRIP_FILE = "data/trips.json"
 
     @staticmethod
-    #Using the static method decorator so that the following load_data and save_data functions do not have access to the class attributes or class methods;
-    #I learned how to use static methods here: https://www.youtube.com/watch?app=desktop&v=7428SmlYD4M&t=140s
     def load_data(file_path: str) -> dict:
-        """saves the dictionary to the json file"""
-        #str and dict in line 12 indicate that we are expecting a string input for the city, and that the function is to return a dictionary
+        """
+        Loads the data from a JSON file and returns it as a dictionary.
+        
+        Args:
+            file_path (str): The path to the JSON file to be loaded.
+        
+        Returns:
+            dict: A dictionary containing the loaded data, or an empty dictionary if an error occurs.
+        """
         try:
+            # Opening the file in read mode
             with open(file_path, 'r') as file:
+                # json.load reads the JSON data from the file and converts it into a Python dictionary
                 return json.load(file)
-            """json.load is parsing the json content to convert it into a python dictionary"""
         except (FileNotFoundError, json.JSONDecodeError):
-            """error handling if the file was not in correct json format"""
+            # If the file is not found or is not a valid JSON file, return an empty dictionary
             return {}
 
     @staticmethod
     def save_data(file_path: str, data: dict) -> None:
-        """writes the data to the json file"""
-        #str and dict in line 23 indicate that we are expecting a string input for the city, and that the function is to return a dictionary;
-        #because the function is meant to store data/write it in the file, I set the output as none so it does not return a value
+        """
+        Saves the provided data (a dictionary) to a JSON file.
+
+        Args:
+            file_path (str): The path to the JSON file where the data should be saved.
+            data (dict): The data to be saved in the JSON file.
+        
+        Returns:
+            None: This function does not return any value as it writes data to the file.
+        """
+        # Opening the file in write mode
         with open(file_path, 'w') as file:
+            # json.dump writes the dictionary to the file, formatting it with indents for readability
             json.dump(data, file, indent=4)
