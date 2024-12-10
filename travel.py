@@ -3,22 +3,14 @@ from typing import List, Dict
 class User:
     def __init__(self, user_id: int, name: str) -> None:
         """
-        Initializes a new user with an ID and name, and initializes an empty list of trips.
-        
-        Args:
-            user_id (int): The unique identifier for the user.
-            name (str): The name of the user.
-        """
+        Initializes a new user with an ID and name, and initializes an empty list of trips. user_id is the unique identifier for the user and name is the name of the user """
         self.user_id = user_id
         self.name = name
         self.trips: List[Trip] = []  # List to store trips associated with the user
 
     def add_trip(self, trip: 'Trip') -> None:
         """
-        Adds a trip to the user's list of trips.
-        
-        Args:
-            trip (Trip): An instance of the Trip class to be added to the user's trip list.
+        Adds a trip to the user's list of tripsm where trip is an instance of the Trip class to be added to the user's trip list.
         """
         self.trips.append(trip)
 
