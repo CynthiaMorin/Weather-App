@@ -86,7 +86,7 @@ class TravelAppGUI:
 
         # Fetch weather data using the WeatherAPI class
         weather_api = WeatherAPI()
-        weather_data = weather_api.get_weather(city, state, 5)
+        weather_data = weather_api.get_weather(city, state)
 
         # If no valid data is returned, shows an error
         if not weather_data or "list" not in weather_data:
