@@ -5,7 +5,7 @@ class WeatherAPI:
     # URL for the OpenWeatherMap API to get weather data
     BASE_URL = "https://api.openweathermap.org/data/2.5/forecast"
     # API key for authenticating requests, generated from OpenWeatherMap website (replace with your actual API key, you will need to create an account)
-    API_KEY = "731b11a6fc004fcb5b9f4791ee38c462"  
+    API_KEY = ##INPUT API KEY HERE  
 
     def get_weather(self, city: str, state: str) -> Optional[Dict]:
         """
