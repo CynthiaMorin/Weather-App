@@ -1,8 +1,8 @@
 import tkinter as tk
 from datetime import datetime
-from weather import WeatherAPI  # Calls WeatherAPI from weather module
+from logic import WeatherAPI  # Calls WeatherAPI from weather module
 import json
-from validation import Validation  # Calls Validation from validation module
+from logic import Validation  # Calls Validation from validation module
 
 class TravelAppGUI:
     def __init__(self) -> None:
